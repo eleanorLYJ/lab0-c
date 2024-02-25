@@ -49,6 +49,7 @@ bool q_insert_head(struct list_head *head, char *s)
         free(newNode);
         return false;
     }
+    copyStr[len] = '\0';
     strncpy(copyStr, s, len);
     newNode->value = copyStr;
     list_add(&newNode->list, head);
