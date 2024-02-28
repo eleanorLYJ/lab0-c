@@ -29,8 +29,7 @@ void q_free(struct list_head *l)
     struct list_head *node, *next;
     list_for_each_safe (node, next, l) {
         element_t *ele = container_of(node, element_t, list);
-        free(ele->value);
-        free(ele);
+        q_release_element(ele);
     }
     free(l);
 }
