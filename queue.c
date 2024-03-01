@@ -147,9 +147,53 @@ bool q_delete_mid(struct list_head *head)
 }
 
 /* Delete all nodes that have duplicate string */
+// https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+
 bool q_delete_dup(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head)
+        return false;
+    LIST_HEAD(dup_list);
+    struct list_head *node, *next;
+    list_for_each_safe (node, next, head) {
+        struct list_head *cur = node->prev;
+        bool isDup = false;
+        element_t *ele1 = list_entry(node, element_t, list);
+        if (!ele1)
+            return false;
+        while (cur != head) {
+            element_t *ele2 = list_entry(cur, element_t, list);
+            if (!ele2)
+                return false;
+
+            if (!strcmp(ele1->value, ele2->value)) {
+                list_del_init(node);
+                q_release_element(ele1);
+                list_del_init(cur);
+                list_add_tail(cur, &dup_list);
+                isDup = true;
+                break;
+            }
+            cur = cur->prev;
+        }
+        if (isDup)
+            continue;
+        list_for_each (cur, &dup_list) {
+            element_t *ele2 = list_entry(cur, element_t, list);
+            if (!ele2)
+                return false;
+            if (!strcmp(ele1->value, ele2->value)) {
+                list_del_init(node);
+                q_release_element(ele1);
+                break;
+            }
+        }
+    }
+    // delete duplicated list
+    list_for_each_safe (node, next, &dup_list) {
+        element_t *ele = list_entry(node, element_t, list);
+        q_release_element(ele);
+    }
     return true;
 }
 
