@@ -269,10 +269,27 @@ void q_sort(struct list_head *head, bool descend) {}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
+// https://leetcode.com/problems/remove-nodes-from-linked-list/
 int q_ascend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head)) {
+        return 0;
+    }
+    int n = 0;
+    struct list_head *cur = head->prev;
+    element_t *smallest = list_entry(cur, element_t, list);
+    while (cur != head) {
+        struct list_head *precur = cur->prev;
+        element_t *ele = list_entry(cur, element_t, list);
+        if (strcmp(ele->value, smallest->value) > 0)
+            list_del(cur);
+        else {
+            smallest = ele;
+            n++;
+        }
+        cur = precur;
+    }
+    return n;
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
