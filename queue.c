@@ -1,8 +1,8 @@
+#include "queue.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "queue.h"
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -154,9 +154,26 @@ bool q_delete_dup(struct list_head *head)
 }
 
 /* Swap every two adjacent nodes */
+// https://leetcode.com/problems/swap-nodes-in-pairs/
 void q_swap(struct list_head *head)
 {
-    // https://leetcode.com/problems/swap-nodes-in-pairs/
+    if (!head || list_empty(head))
+        return;
+    for (struct list_head *cur = head->next;
+         (uintptr_t) (cur) ^ (uintptr_t) (head) &&
+         (uintptr_t) (cur->next) ^ (uintptr_t) (head);
+         cur = cur->next->next) {
+        element_t *first = list_entry(cur, element_t, list);
+        element_t *second = list_entry(cur->next, element_t, list);
+        // swap the value
+        first->value =
+            (char *) ((uintptr_t) first->value ^ (uintptr_t) second->value);
+        second->value =
+            (char *) ((uintptr_t) first->value ^ (uintptr_t) second->value);
+        first->value =
+            (char *) ((uintptr_t) first->value ^ (uintptr_t) second->value);
+    }
+    return;
 }
 
 /* Reverse elements in queue */
@@ -167,7 +184,6 @@ void q_reverse(struct list_head *head)
 
     struct list_head *currNode = head, *nextNode = currNode->next;
 
-    // list_for_each_safe(currNode, nextNode, head) {
     while (nextNode != head) {
         nextNode = currNode->next;
 
