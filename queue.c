@@ -263,9 +263,80 @@ void q_reverseK(struct list_head *head, int k)
     }
 }
 
+struct list_head *mergeTwoLists(struct list_head *L1,
+                                struct list_head *L2,
+                                bool descend)
+{
+    if (!L1)
+        return L2;
+    if (!L2)
+        return L1;
+    struct list_head *L1_head = L1, *L2_head = L2;
+    LIST_HEAD(head);
+    L1 = L1->next;
+    L2 = L2->next;
+    while (L1 != L1_head && L2 != L2_head) {
+        element_t *ele1 = list_entry(L1, element_t, list);
+        element_t *ele2 = list_entry(L2, element_t, list);
+        if ((strcmp(ele1->value, ele2->value) <= 0) != descend) {
+            struct list_head *next = L1->next;
+            list_move_tail(L1, &head);
+            L1 = next;
+        } else {
+            struct list_head *next = L2->next;
+            list_move_tail(L2, &head);
+            L2 = next;
+        }
+    }
+    if (L1 != L1_head) {
+        list_splice_tail_init(L1_head, &head);
+    } else if (L2 != L2_head) {
+        list_splice_tail_init(L2_head, &head);
+    }
+    list_splice(&head, L1_head);
+    list_splice_tail_init(L2_head, L1_head);
+    return L1_head;
+}
+
+struct list_head *mergesort_list(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return head;
+    }
+    struct list_head *fast = head->next, *slow = head->next;
+    do {
+        fast = fast->next->next;
+        slow = slow->next;
+    } while (fast != head && fast->next != head);
+    struct list_head *mid = slow;
+
+    element_t ele;
+    struct list_head *head2 = &(ele.list);
+    INIT_LIST_HEAD(head2);
+    struct list_head *prevhead = head->prev;
+    struct list_head *prevmid = mid->prev;
+
+    head2->prev = prevhead;
+    prevhead->next = head2;
+    head2->next = mid;
+    mid->prev = head2;
+
+    prevmid->next = head;
+    head->prev = prevmid;
+
+    struct list_head *left = mergesort_list(head, descend),
+                     *right = mergesort_list(head2, descend);
+    mergeTwoLists(left, right, descend);
+    return left;
+}
 
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head))
+        return;
+    mergesort_list(head, descend);
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
@@ -301,15 +372,15 @@ int q_descend(struct list_head *head)
     }
     int n = 0;
     struct list_head *cur = head->prev;
-    element_t *smallest = list_entry(cur, element_t, list);
+    element_t *biggest = list_entry(cur, element_t, list);
     while (cur != head) {
         struct list_head *precur = cur->prev;
         element_t *ele = list_entry(cur, element_t, list);
-        if (strcmp(ele->value, smallest->value) < 0) {
+        if (strcmp(ele->value, biggest->value) < 0) {
             list_del_init(cur);
             q_release_element(list_entry(cur, element_t, list));
         } else {
-            smallest = ele;
+            biggest = ele;
             n++;
         }
         cur = precur;
@@ -319,8 +390,22 @@ int q_descend(struct list_head *head)
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
  * order */
+// https://leetcode.com/problems/merge-k-sorted-lists/
 int q_merge(struct list_head *head, bool descend)
 {
-    // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    else if (list_is_singular(head))
+        return list_entry(head->next, queue_contex_t, chain)->size;
+    queue_contex_t *target = list_entry(head->next, queue_contex_t, chain);
+    queue_contex_t *que = NULL;
+    list_for_each_entry (que, head, chain) {
+        if (que == target)
+            continue;
+        list_splice_init(que->q, target->q);
+        target->size = target->size + que->size;
+        que->size = 0;
+    }
+    q_sort(target->q, descend);
+    return target->size;
 }

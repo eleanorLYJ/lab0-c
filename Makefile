@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -O1 -g -Wall -Werror -Idudect -I.
 
+LDFLAGS = -g
 # Emit a warning should any variable-length array be found within the code.
 CFLAGS += -Wvla
 
