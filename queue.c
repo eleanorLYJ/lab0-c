@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -408,4 +409,25 @@ int q_merge(struct list_head *head, bool descend)
     }
     q_sort(target->q, descend);
     return target->size;
+}
+
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+    int len = q_size(head);
+
+    struct list_head *last, *ptr = head->next;
+    for (last = head->prev; last != head && len;
+         len--, ptr = head->next, last = last->prev) {
+        int r = rand() % len;
+        while (r--)
+            ptr = ptr->next;
+        // swap
+        struct list_head *tmp = ptr->prev;
+        if (tmp == last)
+            continue;
+        list_move(ptr, last);
+        list_move(last, tmp);
+    }
 }
