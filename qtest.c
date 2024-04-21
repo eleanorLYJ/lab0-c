@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 #else /* Assume POSIX environments */
@@ -47,6 +48,8 @@ extern int show_entropy;
 #include "console.h"
 #include "report.h"
 
+#include "coroutine.h"
+
 /* Settable parameters */
 
 #define HISTORY_LEN 20
@@ -74,6 +77,9 @@ static int fail_count = 0;
 static int string_length = MAXSTRING;
 
 static int descend = 0;
+
+static int mode = 0;
+
 
 #define MIN_RANDSTR_LEN 5
 #define MAX_RANDSTR_LEN 10
@@ -1012,8 +1018,6 @@ static bool do_next(int argc, char *argv[])
 
     return q_show(0);
 }
-
-
 // static bool do_shuffle(int argc, char *argv[])
 // {
 //     if (argc != 1) {
@@ -1036,6 +1040,12 @@ static bool do_next(int argc, char *argv[])
 //     q_show(3);
 //     return !error_check();
 // }
+
+static bool do_ttt(int argc, char *argv[])
+{
+    ttt(mode);
+    return true;
+}
 
 static void console_init()
 {
@@ -1078,7 +1088,7 @@ static void console_init()
     ADD_COMMAND(reverseK, "Reverse the nodes of the queue 'K' at a time",
                 "[K]");
     // ADD_COMMAND(shuffle, "Implement Fisher–Yates shuffle algorithm", "");
-
+    ADD_COMMAND(ttt, "play tic-tac-toe", "");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
@@ -1087,6 +1097,7 @@ static void console_init()
               "Number of times allow queue operations to return false", NULL);
     add_param("descend", &descend,
               "Sort and merge queue in ascending/descending order", NULL);
+    add_param("mode", &mode, "negamax vs. player or negamax vs. mcts", NULL);
 }
 
 /* Signal handlers */
